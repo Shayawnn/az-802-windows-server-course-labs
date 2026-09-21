@@ -1,0 +1,39 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell
+        shell: powershell
+        run: .\tests\Parse-AllScripts.ps1
+      - name: Repository hygiene
+        shell: powershell
+        run: .\tests\Repository-Hygiene.ps1
+      - name: Install Pester and PSScriptAnalyzer
+        shell: powershell
+        run: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -Scope CurrentUser -Force -MinimumVersion 5.0
+          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+      - name: Pester
+        shell: powershell
+        run: Invoke-Pester -Path .\tests\Repository.Tests.ps1 -CI
+      - name: PSScriptAnalyzer
+        shell: powershell
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Settings .\tests\PSScriptAnalyzerSettings.psd1
+          $results | Format-Table -AutoSize
+          if ($results) { throw "PSScriptAnalyzer returned findings." }
+  bash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash syntax
+        run: find . -name '*.sh' -print0 | xargs -0 -n1 bash -n

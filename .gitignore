@@ -1,0 +1,4 @@
+config/LabConfig.psd1
+*.zip
+*.bak
+.vscode/
