@@ -45,7 +45,8 @@ Write-Az802Step 2 'Inspect or create course organizational units'
 $CreateCourseOus = $CreateBaseline -or $CreateCourseAdmin
 foreach ($Name in @('AZ802-LabUsers','AZ802-Groups','AZ802-Servers','AZ802-Workstations')) {
     $Dn = 'OU={0},{1}' -f $Name,$BaseDN
-    $Existing = Get-ADOrganizationalUnit -Identity $Dn -ErrorAction SilentlyContinue
+    # $Existing = Get-ADOrganizationalUnit -Identity $Dn -ErrorAction SilentlyContinue
+    $Existing = Get-ADOrganizationalUnit -Filter "DistinguishedName -eq '$Dn'" -ErrorAction SilentlyContinue
     if ($Existing) {
         Write-Az802Status OK ('OU exists: {0}' -f $Dn)
     } elseif ($CreateCourseOus -and $PSCmdlet.ShouldProcess($Dn,'Create OU')) {
@@ -59,7 +60,8 @@ foreach ($Name in @('AZ802-LabUsers','AZ802-Groups','AZ802-Servers','AZ802-Works
 # Step 3: Create the course administrator only when requested.
 Write-Az802Step 3 'Optional course domain administrator'
 $AdminSam = 'AZ802-Admin'
-$Admin = Get-ADUser -Identity $AdminSam -ErrorAction SilentlyContinue
+# $Admin = Get-ADUser -Identity $AdminSam -ErrorAction SilentlyContinue
+$Admin = Get-ADUser -Filter "SamAccountName -eq '$AdminSam'" -ErrorAction SilentlyContinue
 if ($CreateCourseAdmin -and -not $Admin) {
     if ($PSCmdlet.ShouldProcess($AdminSam,'Create course domain user')) {
         if (-not $CourseAdminPassword) { $CourseAdminPassword = Read-Host ('Password for {0}' -f $AdminSam) -AsSecureString }
@@ -73,10 +75,11 @@ if ($CreateCourseAdmin -and -not $Admin) {
 }
 
 if ($AddCourseAdminToDomainAdmins) {
-    $Admin = Get-ADUser -Identity $AdminSam -ErrorAction SilentlyContinue
+    $Admin = Get-ADUser -Filter "SamAccountName -eq '$AdminSam'" -ErrorAction SilentlyContinue
     if (-not $Admin) { throw 'Create AZ802-Admin first with -CreateCourseAdmin.' }
     $DomainAdminsSid = '{0}-512' -f $Domain.DomainSID.Value
-    $DomainAdmins = Get-ADGroup -Identity $DomainAdminsSid -ErrorAction Stop
+    # $DomainAdmins = Get-ADGroup -Identity $DomainAdminsSid -ErrorAction Stop
+    $DomainAdmins = Get-ADGroup -Filter "SID -eq '$DomainAdminsSid'" -ErrorAction Stop
     $Member = Get-ADGroupMember -Identity $DomainAdmins -Recursive | Where-Object SamAccountName -eq $AdminSam
     if ($Member) {
         Write-Az802Status OK ('{0} is already a member of {1}.' -f $AdminSam,$DomainAdmins.Name)
@@ -90,11 +93,13 @@ if ($AddCourseAdminToDomainAdmins) {
 Write-Az802Step 4 'Inspect or create course users and security group'
 $UsersOu = 'OU=AZ802-LabUsers,{0}' -f $BaseDN
 foreach ($Sam in @('AZ802-User01','AZ802-User02')) {
-    $ExistingUser = Get-ADUser -Identity $Sam -ErrorAction SilentlyContinue
+    # $ExistingUser = Get-ADUser -Identity $Sam -ErrorAction SilentlyContinue
+    $ExistingUser = Get-ADUser -Filter "SamAccountName -eq '$Sam'" -ErrorAction SilentlyContinue
     if ($ExistingUser) {
         Write-Az802Status OK ('Course user exists: {0}.' -f $Sam)
     } elseif ($CreateBaseline) {
-        if (-not (Get-ADOrganizationalUnit -Identity $UsersOu -ErrorAction SilentlyContinue)) { throw 'AZ802-LabUsers OU is missing. Rerun with -CreateBaseline after resolving the OU creation error.' }
+        # if (-not (Get-ADOrganizationalUnit -Identity $UsersOu -ErrorAction SilentlyContinue)) { throw 'AZ802-LabUsers OU is missing. Rerun with -CreateBaseline after resolving the OU creation error.' }
+        if (-not (Get-ADOrganizationalUnit -Filter "DistinguishedName -eq '$UsersOu'" -ErrorAction SilentlyContinue)) { throw 'AZ802-LabUsers OU is missing. Rerun with -CreateBaseline after resolving the OU creation error.' }
         if ($PSCmdlet.ShouldProcess($Sam,'Create course domain user')) {
             if (-not $CourseUserPassword) { $CourseUserPassword = Read-Host 'Password for course users' -AsSecureString }
             New-ADUser -Name $Sam -SamAccountName $Sam -UserPrincipalName ('{0}@{1}' -f $Sam,$Domain.DNSRoot) -AccountPassword $CourseUserPassword -Enabled $true -ChangePasswordAtLogon $true -Path $UsersOu
@@ -106,12 +111,14 @@ foreach ($Sam in @('AZ802-User01','AZ802-User02')) {
 }
 
 $GroupDn = 'CN=AZ802-Development,OU=AZ802-Groups,{0}' -f $BaseDN
-$ExistingGroup = Get-ADGroup -Identity $GroupDn -ErrorAction SilentlyContinue
+# $ExistingGroup = Get-ADGroup -Identity $GroupDn -ErrorAction SilentlyContinue
+$ExistingGroup = Get-ADGroup -Filter "DistinguishedName -eq '$GroupDn'" -ErrorAction SilentlyContinue
 if ($ExistingGroup) {
     Write-Az802Status OK 'Course group exists: AZ802-Development.'
 } elseif ($CreateBaseline) {
     $GroupsOu = 'OU=AZ802-Groups,{0}' -f $BaseDN
-    if (-not (Get-ADOrganizationalUnit -Identity $GroupsOu -ErrorAction SilentlyContinue)) { throw 'AZ802-Groups OU is missing. Rerun with -CreateBaseline after resolving the OU creation error.' }
+    # if (-not (Get-ADOrganizationalUnit -Identity $GroupsOu -ErrorAction SilentlyContinue)) { throw 'AZ802-Groups OU is missing. Rerun with -CreateBaseline after resolving the OU creation error.' }
+    if (-not (Get-ADOrganizationalUnit -Filter "DistinguishedName -eq '$GroupsOu'" -ErrorAction SilentlyContinue)) { throw 'AZ802-Groups OU is missing. Rerun with -CreateBaseline after resolving the OU creation error.' }
     if ($PSCmdlet.ShouldProcess('AZ802-Development','Create course security group')) {
         New-ADGroup -Name 'AZ802-Development' -SamAccountName 'AZ802-Development' -GroupScope Global -GroupCategory Security -Path $GroupsOu -Description 'AZ-802 course lab group'
         Write-Az802Status CREATE 'Created AZ802-Development.'
@@ -120,4 +127,5 @@ if ($ExistingGroup) {
     Write-Az802Status INFO 'Course group is absent: AZ802-Development. Use -CreateBaseline to create it.'
 }
 Get-ADUser -Filter 'SamAccountName -like "AZ802-*"' | Select-Object Name,SamAccountName,Enabled
-Get-ADGroup -Identity 'AZ802-Development' -ErrorAction SilentlyContinue
+# Get-ADGroup -Identity 'AZ802-Development' -ErrorAction SilentlyContinue
+Get-ADGroup -Filter 'SamAccountName -eq "AZ802-Development"' | Select-Object Name,SamAccountName,GroupScope,GroupCategory
