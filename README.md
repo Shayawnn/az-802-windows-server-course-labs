@@ -2,9 +2,10 @@
 
 Instructor-developed lab scripts for **AZ-802: Administer Windows Server**.
 
-> **Instructor:** Shayan Ghasemnezhad
-> **Microsoft Certified Trainer (MCT)**
->
+Hands-on Windows Server labs built for **AZ-802: Administering Windows Server** and for the practical administration work behind the exam objectives.
+
+> **Instructor:** Shayan Ghasemnezhad  
+> **Microsoft Certified Trainer (MCT)**  
 > _Microsoft Certified: Azure Solutions Architect Expert_ · _AWS Certified Solutions Architect - Professional_
 
 This repository is built for live teaching. Each topic script can be executed as a whole or opened and run step by step in Windows PowerShell.
@@ -56,7 +57,41 @@ Copy-Item .\config\LabConfig.example.psd1 .\config\LabConfig.psd1
 notepad .\config\LabConfig.psd1
 ```
 
-`LabConfig.psd1` is ignored by Git. Do not put passwords, private keys or tenant secrets in it.
+Example:
+
+```powershell
+@{
+    DefaultDomainName = 'shayawn.local'
+    DefaultNetBIOSName = 'SHAYAWN'
+
+    PeerWindowsHost = 'SERVER02'
+    WindowsClient = 'WIN11'
+    LinuxHost = $null
+
+    WindowsServerIso = 'C:\ISO\WindowsServer.iso'
+    LinuxIso = $null
+    BackupTarget = $null
+
+    LabRoot = 'C:\AZ802'
+}
+```
+
+`$null` simply means that optional capability is not configured. `config\LabConfig.psd1` is ignored by Git. Do not put passwords, private keys, tokens or tenant secrets in it.
+
+## Course map
+
+| Folder | Focus | Microsoft Learn |
+| --- | --- | --- |
+| [`00-environment-preparation`](00-environment-preparation/) | Preflight, optional tools and media | [Windows Server deployment and administration](https://learn.microsoft.com/en-us/training/paths/windows-server-deployment-configuration-administration/) |
+| [`01-initial-configuration`](01-initial-configuration/) | Local accounts, network, DNS client, time, firewall, RDP | [Windows Server deployment and administration](https://learn.microsoft.com/en-us/training/paths/windows-server-deployment-configuration-administration/) |
+| [`02-active-directory`](02-active-directory/) | AD DS, forest/domain, users/groups/OUs, GPO, domain join | [Deploy and manage AD DS](https://learn.microsoft.com/en-us/training/paths/deploy-manage-active-directory-domain-services/) |
+| [`03-remote-administration`](03-remote-administration/) | PowerShell, WinRM, SSH, Windows Admin Center | [Manage Windows Server instances and workloads](https://learn.microsoft.com/en-us/training/paths/manage-windows-server-instances-workloads-hybrid-environment/) |
+| [`04-hyperv`](04-hyperv/) | Hyper-V, virtual networking, guests, lifecycle | [Manage virtual machines](https://learn.microsoft.com/en-us/training/paths/manage-virtual-machines/) |
+| [`05-network-services`](05-network-services/) | DNS, DHCP, RDP, IIS, troubleshooting scenarios | [Windows Server Network Infrastructure](https://learn.microsoft.com/en-us/training/paths/windows-server-network-infrastructure/) |
+| [`06-storage`](06-storage/) | SMB/NTFS, FSRM, NFS, iSCSI, DFS, backup, clustering | [Manage storage and file services](https://learn.microsoft.com/en-us/training/paths/manage-storage-file-services/) |
+| [`07-security-monitoring-ir`](07-security-monitoring-ir/) | Hardening, auditing, monitoring, troubleshooting, IR | [Secure Windows Server infrastructure](https://learn.microsoft.com/en-us/training/paths/secure-windows-server-infrastructure/) |
+
+A fuller mapping is in [Microsoft Learn references](docs/microsoft-learn.md).
 
 ## Repository layout
 
@@ -164,6 +199,7 @@ The included GitHub Actions workflow performs static validation on a Windows run
 - [Execution model](docs/execution-model.md)
 - [Environment preparation](docs/environment-preparation.md)
 - [Safety model](docs/safety.md)
+- [Microsoft Learn references](docs/microsoft-learn.md)
 
 ## License
 
