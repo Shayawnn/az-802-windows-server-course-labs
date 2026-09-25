@@ -71,7 +71,7 @@ if ($RemoteState.PartOfDomain) {
 Write-Az802Step 4 'Configure DNS and join the remote machine'
 if ($PSCmdlet.ShouldProcess($ComputerName,('Configure DNS and join {0}' -f $DomainName))) {
     Invoke-Command -ComputerName $ComputerName -Credential $RemoteCredential -ArgumentList $DomainDnsServer,$DomainName,$DomainJoinCredential -ErrorAction Stop -ScriptBlock {
-        param($DnsServer,$Domain,$JoinCredential)
+        param($DnsServer,$Domain,[System.Management.Automation.PSCredential]$JoinCredential)
         $Adapter = Get-NetIPConfiguration | Where-Object { $_.NetAdapter.Status -eq 'Up' -and $_.IPv4Address -and $_.IPv4DefaultGateway } | Select-Object -First 1
         if (-not $Adapter) { throw 'No active IPv4 adapter with a default gateway was found.' }
         Set-DnsClientServerAddress -InterfaceIndex $Adapter.InterfaceIndex -ServerAddresses $DnsServer
