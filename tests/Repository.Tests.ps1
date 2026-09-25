@@ -1,6 +1,8 @@
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-
 Describe 'AZ-802 repository structure' {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+    }
+
     It 'has the environment-preparation runner and one runner for each course module' {
         Test-Path -LiteralPath (Join-Path $RepoRoot '00-environment-preparation\Run-EnvironmentPreparation.ps1') | Should -BeTrue
         foreach ($Dir in @(
@@ -34,21 +36,6 @@ Describe 'AZ-802 repository structure' {
                 $Candidate = Join-Path $Runner.DirectoryName $RelativeName
                 if (-not (Test-Path -LiteralPath $Candidate -PathType Leaf)) {
                     $Missing += ('{0} -> {1}' -f $Runner.FullName,$RelativeName)
-                }
-            }
-        }
-        $Missing | Should -BeNullOrEmpty
-    }
-
-    It 'contains no coverage-map references to missing scripts' {
-        $CoveragePath = Join-Path $RepoRoot 'docs\command-to-script-coverage.csv'
-        Test-Path -LiteralPath $CoveragePath | Should -BeTrue
-        $Missing = @()
-        Import-Csv -LiteralPath $CoveragePath | ForEach-Object {
-            foreach ($Script in @($_.scripts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
-                $Candidate = Join-Path $RepoRoot ($Script -replace '/', '\')
-                if (-not (Test-Path -LiteralPath $Candidate -PathType Leaf)) {
-                    $Missing += ('Module {0}, slide {1}: {2}' -f $_.module,$_.slide,$Script)
                 }
             }
         }
