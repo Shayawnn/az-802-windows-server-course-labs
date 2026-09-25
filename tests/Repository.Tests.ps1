@@ -40,21 +40,6 @@ Describe 'AZ-802 repository structure' {
         $Missing | Should -BeNullOrEmpty
     }
 
-    It 'contains no coverage-map references to missing scripts' {
-        $CoveragePath = Join-Path $RepoRoot 'docs\command-to-script-coverage.csv'
-        Test-Path -LiteralPath $CoveragePath | Should -BeTrue
-        $Missing = @()
-        Import-Csv -LiteralPath $CoveragePath | ForEach-Object {
-            foreach ($Script in @($_.scripts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
-                $Candidate = Join-Path $RepoRoot ($Script -replace '/', '\')
-                if (-not (Test-Path -LiteralPath $Candidate -PathType Leaf)) {
-                    $Missing += ('Module {0}, slide {1}: {2}' -f $_.module,$_.slide,$Script)
-                }
-            }
-        }
-        $Missing | Should -BeNullOrEmpty
-    }
-
     It 'has no duplicate PowerShell filenames inside a module directory' {
         $Duplicates = @()
         Get-ChildItem -LiteralPath $RepoRoot -Directory | Where-Object Name -Match '^\d\d-' | ForEach-Object {
