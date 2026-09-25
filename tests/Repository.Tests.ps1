@@ -1,6 +1,8 @@
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-
 Describe 'AZ-802 repository structure' {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+    }
+
     It 'has the environment-preparation runner and one runner for each course module' {
         Test-Path -LiteralPath (Join-Path $RepoRoot '00-environment-preparation\Run-EnvironmentPreparation.ps1') | Should -BeTrue
         foreach ($Dir in @(
